@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tabata Timer</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>Tabata Timer</h1>
+
+        <!-- Configuration Section -->
+        <div id="config" class="config-section card">
+            <h2>Configuration</h2>
+            <div class="input-group">
+                <label for="rounds">Rounds:</label>
+                <input type="number" id="rounds" value="15" min="1">
+            </div>
+            <div class="input-group">
+                <label for="exercisesPerRound">Exercises per Round:</label>
+                <input type="number" id="exercisesPerRound" value="3" min="1">
+            </div>
+            <div class="input-group">
+                <label for="exerciseTime">Exercise Time (s):</label>
+                <input type="number" id="exerciseTime" value="45" min="1">
+            </div>
+            <div class="input-group">
+                <label for="restTime">Rest Between Exercises (s):</label>
+                <input type="number" id="restTime" value="15" min="1">
+            </div>
+            <div class="input-group">
+                <label for="roundRestTime">Rest Between Rounds (s):</label>
+                <input type="number" id="roundRestTime" value="60" min="1">
+            </div>
+        </div>
+
+        <!-- Timer Display Section -->
+        <div id="timer-display" class="timer-section card" style="display: none;">
+            <h2 id="currentState">Get Ready</h2>
+            <div id="timer" class="timer-countdown">--</div>
+            <div id="roundInfo">Round: - / - | Exercise: - / -</div>
+            <div class="progress-bar-container">
+                <div id="progressBar" class="progress-bar"></div>
+            </div>
+             <div id="nextUp">Next: Exercise 1</div>
+        </div>
+
+        <!-- Controls Section -->
+        <div class="controls card">
+            <button id="startPauseButton">Start</button>
+            <button id="resetButton">Reset</button>
+        </div>
+
+        <div id="errorMessage" class="error-message"></div>
+
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
