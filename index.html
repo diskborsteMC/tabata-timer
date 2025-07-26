@@ -378,7 +378,7 @@ Jumping Jacks</textarea>
                     currentStateDisplay.textContent = 'Rest';
                     timerDisplaySection.classList.add('rest');
                     progressBar.style.backgroundColor = '#f5a623';
-                    nextUpDisplay.textContent = `Next: Round ${currentRound}`;
+                    nextUpDisplay.textContent = `Next: Round ${currentRound + 1}`;
                     break;
                 case 'roundRest':
                     currentStateDisplay.textContent = 'Exercise Rest';
@@ -399,6 +399,7 @@ Jumping Jacks</textarea>
             if (isPaused) return;
             currentTime--;
 
+            // --- Voice Cues ---
             if (state === 'exercise') {
                 const halfway = Math.ceil(totalTimeForCurrentPhase / 2);
                 if (currentTime === halfway) {
@@ -414,20 +415,24 @@ Jumping Jacks</textarea>
                         speak("Exercise Complete. Rest.");
                     }
                 }
-            } else if (['rest', 'roundRest', 'prepare'].includes(state)) {
+            } else if (state === 'roundRest') { 
+                if (currentTime === 5 && totalTimeForCurrentPhase >= 5) {
+                    const nextExerciseName = exerciseNames[currentExercise] || `Exercise ${currentExercise + 1}`;
+                    speak(`Next exercise: ${nextExerciseName}. 3, 2, 1`);
+                } else if (currentTime > 0 && currentTime <= 3 && totalTimeForCurrentPhase < 5) {
+                    speak(String(currentTime));
+                } else if (currentTime === 0 && totalTimeForCurrentPhase < 5) {
+                    speak("Begin");
+                }
+            } else if (state === 'rest' || state === 'prepare') {
                  if (currentTime <= 3 && currentTime > 0) {
                     speak(String(currentTime));
                 } else if (currentTime === 0) {
-                    const isLastExercise = currentExercise === totalExercises;
-                    if (state === 'roundRest' && !isLastExercise) {
-                         const nextExerciseName = exerciseNames[currentExercise] || `Exercise ${currentExercise + 1}`;
-                         speak(`Next exercise: ${nextExerciseName}`);
-                    } else {
-                        speak("Begin");
-                    }
+                    speak("Begin");
                 }
             }
 
+            // --- State Transitions ---
             if (currentTime < 0) {
                 moveToNextState();
             }
