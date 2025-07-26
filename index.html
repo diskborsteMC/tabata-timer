@@ -4,58 +4,627 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Tabata Timer</title>
-    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            background-color: #f0f0f0;
+            color: #333;
+            line-height: 1.6;
+        }
+
+        .container {
+            background-color: #fff;
+            padding: 20px 30px;
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.1);
+            text-align: center;
+            max-width: 500px;
+            width: 90%;
+        }
+
+        h1 {
+            color: #4a90e2;
+            margin-bottom: 20px;
+        }
+
+        h2 {
+            margin-bottom: 15px;
+            color: #555;
+        }
+
+        .card {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            box-shadow: 0 1px 5px rgba(0,0,0,0.05);
+        }
+
+        .config-section .input-group {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        
+        .config-section .mode-selector {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 15px;
+        }
+
+        .config-section label {
+            margin-right: 10px;
+            flex-basis: 60%;
+            text-align: left;
+        }
+
+        .config-section input[type="number"] {
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            width: 80px;
+            text-align: right;
+        }
+
+        .config-section textarea {
+            width: 95%;
+            min-height: 100px;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            font-family: sans-serif;
+            margin-top: 5px;
+        }
+
+        .timer-section {
+            padding: 30px 20px;
+            border: 2px solid #ddd;
+            transition: background-color 0.5s ease, border-color 0.5s ease;
+        }
+
+        .timer-section.exercise {
+            background-color: #e7f3ff;
+            border-color: #4a90e2;
+        }
+
+        .timer-section.rest {
+            background-color: #fff9e6;
+            border-color: #f5a623;
+        }
+
+        .timer-section.round-rest {
+            background-color: #ffe6e6;
+            border-color: #d0021b;
+        }
+        .timer-section.finished {
+            background-color: #e8f5e9;
+            border-color: #4CAF50;
+        }
+
+        #currentState {
+            font-size: 1.8em;
+            font-weight: bold;
+            margin-bottom: 10px;
+            min-height: 1.2em;
+        }
+
+        #timer {
+            font-size: 4.5em;
+            font-weight: bold;
+            color: #333;
+            margin-bottom: 15px;
+        }
+
+        #roundInfo {
+            font-size: 1.1em;
+            color: #666;
+            margin-bottom: 20px;
+        }
+
+        .progress-bar-container {
+            width: 100%;
+            height: 20px;
+            background-color: #e0e0e0;
+            border-radius: 10px;
+            overflow: hidden;
+            margin-bottom: 15px;
+        }
+
+        .progress-bar {
+            height: 100%;
+            width: 0%;
+            background-color: #4a90e2;
+            border-radius: 10px;
+            transition: width 0.2s linear, background-color 0.5s ease;
+        }
+
+        .timer-section.exercise .progress-bar { background-color: #4a90e2; }
+        .timer-section.rest .progress-bar { background-color: #f5a623; }
+        .timer-section.round-rest .progress-bar { background-color: #d0021b; }
+        .timer-section.finished .progress-bar { background-color: #4CAF50; width: 100% !important; }
+
+        #nextUp {
+            font-size: 1em;
+            color: #777;
+            min-height: 1.2em;
+        }
+
+        .controls button {
+            padding: 12px 25px;
+            font-size: 1.1em;
+            margin: 0 10px;
+            cursor: pointer;
+            border: none;
+            border-radius: 5px;
+            transition: background-color 0.3s ease;
+        }
+
+        #startPauseButton {
+            background-color: #4CAF50;
+            color: white;
+        }
+
+        #startPauseButton:hover {
+            background-color: #45a049;
+        }
+
+        #startPauseButton.pause {
+            background-color: #ff9800;
+        }
+        #startPauseButton.pause:hover {
+            background-color: #f57c00;
+        }
+
+        #resetButton {
+            background-color: #f44336;
+            color: white;
+        }
+
+        #resetButton:hover {
+            background-color: #d32f2f;
+        }
+
+        .error-message {
+            color: #d32f2f;
+            margin-top: 15px;
+            font-weight: bold;
+            min-height: 1.2em;
+        }
+
+    </style>
 </head>
 <body>
     <div class="container">
         <h1>Tabata Timer</h1>
 
-        <!-- Configuration Section -->
         <div id="config" class="config-section card">
             <h2>Configuration</h2>
+            <div class="mode-selector">
+                <input type="radio" id="modeInteger" name="exerciseMode" value="integer" checked>
+                <label for="modeInteger">Number of Exercises</label>
+                <input type="radio" id="modeList" name="exerciseMode" value="list">
+                <label for="modeList">List of Exercises</label>
+            </div>
+
+            <div id="integer-mode-group">
+                <div class="input-group">
+                    <label for="exercises">Number of Exercises:</label>
+                    <input type="number" id="exercises" value="15" min="1">
+                </div>
+            </div>
+
+            <div id="list-mode-group" style="display: none;">
+                 <label for="exerciseList">Exercises (one per line):</label>
+                 <textarea id="exerciseList" rows="5">Push-ups
+Sit-ups
+Squats
+Jumping Jacks</textarea>
+            </div>
+            
             <div class="input-group">
-                <label for="rounds">Rounds:</label>
-                <input type="number" id="rounds" value="15" min="1">
+                <label for="roundsPerExercise">Rounds per Exercise:</label>
+                <input type="number" id="roundsPerExercise" value="3" min="1">
             </div>
             <div class="input-group">
-                <label for="exercisesPerRound">Exercises per Round:</label>
-                <input type="number" id="exercisesPerRound" value="3" min="1">
+                <label for="roundTime">Round Time (s):</label>
+                <input type="number" id="roundTime" value="45" min="1">
             </div>
             <div class="input-group">
-                <label for="exerciseTime">Exercise Time (s):</label>
-                <input type="number" id="exerciseTime" value="45" min="1">
-            </div>
-            <div class="input-group">
-                <label for="restTime">Rest Between Exercises (s):</label>
+                <label for="restTime">Rest Between Rounds (s):</label>
                 <input type="number" id="restTime" value="15" min="1">
             </div>
             <div class="input-group">
-                <label for="roundRestTime">Rest Between Rounds (s):</label>
-                <input type="number" id="roundRestTime" value="15" min="1">
+                <label for="exerciseRestTime">Rest Between Exercises (s):</label>
+                <input type="number" id="exerciseRestTime" value="15" min="1">
             </div>
         </div>
 
-        <!-- Timer Display Section -->
         <div id="timer-display" class="timer-section card" style="display: none;">
             <h2 id="currentState">Get Ready</h2>
             <div id="timer" class="timer-countdown">--</div>
-            <div id="roundInfo">Round: - / - | Exercise: - / -</div>
+            <div id="roundInfo">Exercise: - / - | Round: - / -</div>
             <div class="progress-bar-container">
                 <div id="progressBar" class="progress-bar"></div>
             </div>
              <div id="nextUp">Next: Exercise 1</div>
         </div>
 
-        <!-- Controls Section -->
         <div class="controls card">
             <button id="startPauseButton">Start</button>
             <button id="resetButton">Reset</button>
         </div>
 
         <div id="errorMessage" class="error-message"></div>
-
     </div>
 
-    <script src="script.js"></script>
+    <script>
+        const configSection = document.getElementById('config');
+        const timerDisplaySection = document.getElementById('timer-display');
+        const startPauseButton = document.getElementById('startPauseButton');
+        const resetButton = document.getElementById('resetButton');
+        const currentStateDisplay = document.getElementById('currentState');
+        const timerDisplay = document.getElementById('timer');
+        const roundInfoDisplay = document.getElementById('roundInfo');
+        const progressBar = document.getElementById('progressBar');
+        const nextUpDisplay = document.getElementById('nextUp');
+        const errorMessage = document.getElementById('errorMessage');
+
+        const modeIntegerRadio = document.getElementById('modeInteger');
+        const modeListRadio = document.getElementById('modeList');
+        const integerModeGroup = document.getElementById('integer-mode-group');
+        const listModeGroup = document.getElementById('list-mode-group');
+
+        const exercisesInput = document.getElementById('exercises');
+        const exerciseListInput = document.getElementById('exerciseList');
+        const roundsPerExerciseInput = document.getElementById('roundsPerExercise');
+        const roundTimeInput = document.getElementById('roundTime');
+        const restTimeInput = document.getElementById('restTime');
+        const exerciseRestTimeInput = document.getElementById('exerciseRestTime');
+
+        let totalExercises = 0;
+        let roundsPerExercise = 0;
+        let roundTime = 0;
+        let restTime = 0;
+        let exerciseRestTime = 0;
+        let exerciseNames = [];
+
+        let currentExercise = 1;
+        let currentRound = 1;
+        let currentTime = 0;
+        let intervalId = null;
+        let state = 'idle';
+        let isPaused = false;
+        let totalTimeForCurrentPhase = 0;
+
+        let synth = window.speechSynthesis;
+        let utterance = new SpeechSynthesisUtterance();
+        utterance.lang = 'en-US';
+        utterance.rate = 1.0;
+
+        function speak(text) {
+            if (!synth) {
+                console.warn("Speech Synthesis not supported.");
+                return;
+            }
+            synth.cancel();
+            utterance.text = text;
+            try {
+                synth.speak(utterance);
+            } catch (error) {
+                console.error("Speech synthesis error:", error);
+                errorMessage.textContent = "Speech synthesis failed.";
+            }
+        }
+
+        function updateDisplay() {
+            timerDisplay.textContent = String(currentTime).padStart(2, '0');
+
+            if (state !== 'idle' && state !== 'finished' && state !== 'prepare') {
+                 roundInfoDisplay.textContent = `Exercise: ${currentExercise} / ${totalExercises} | Round: ${currentRound} / ${roundsPerExercise}`;
+            } else if (state === 'prepare') {
+                 roundInfoDisplay.textContent = `Starting Exercise: 1 / ${totalExercises} | Round: 1 / ${roundsPerExercise}`;
+            } else if (state === 'finished') {
+                 roundInfoDisplay.textContent = `Completed: ${totalExercises} Exercises | ${totalExercises * roundsPerExercise} Total Rounds`;
+            } else {
+                roundInfoDisplay.textContent = 'Exercise: - / - | Round: - / -';
+            }
+
+            let progressPercent = 0;
+            if (totalTimeForCurrentPhase > 0 && state !== 'idle' && state !== 'finished') {
+                progressPercent = ((totalTimeForCurrentPhase - currentTime) / totalTimeForCurrentPhase) * 100;
+            } else if (state === 'finished') {
+                progressPercent = 100;
+            }
+            progressBar.style.width = `${progressPercent}%`;
+
+            timerDisplaySection.className = 'timer-section card';
+            
+            const currentExerciseName = exerciseNames[currentExercise - 1] || `Exercise ${currentExercise}`;
+            const nextExerciseName = exerciseNames[currentExercise] || `Exercise ${currentExercise + 1}`;
+            
+            switch (state) {
+                case 'idle':
+                    currentStateDisplay.textContent = 'Configure & Start';
+                    nextUpDisplay.textContent = '';
+                    break;
+                case 'prepare':
+                    currentStateDisplay.textContent = 'Get Ready!';
+                    timerDisplaySection.classList.add('rest');
+                    progressBar.style.backgroundColor = '#f5a623';
+                    nextUpDisplay.textContent = `Next: ${exerciseNames[0] || 'Exercise 1'}`;
+                    break;
+                case 'exercise':
+                    currentStateDisplay.textContent = currentExerciseName;
+                    timerDisplaySection.classList.add('exercise');
+                    progressBar.style.backgroundColor = '#4a90e2';
+                    const isLastRound = currentRound === roundsPerExercise;
+                    if (isLastRound) {
+                        const isLastExercise = currentExercise === totalExercises;
+                        if(isLastExercise) {
+                            nextUpDisplay.textContent = 'Next: Finish!';
+                        } else {
+                             nextUpDisplay.textContent = (exerciseRestTime > 0) ? `Next: Exercise Rest` : `Next: ${nextExerciseName}`;
+                        }
+                    } else {
+                         nextUpDisplay.textContent = (restTime > 0) ? `Next: Rest` : `Next: Round ${currentRound + 1}`;
+                    }
+                    break;
+                case 'rest':
+                    currentStateDisplay.textContent = 'Rest';
+                    timerDisplaySection.classList.add('rest');
+                    progressBar.style.backgroundColor = '#f5a623';
+                    nextUpDisplay.textContent = `Next: Round ${currentRound}`;
+                    break;
+                case 'roundRest':
+                    currentStateDisplay.textContent = 'Exercise Rest';
+                    timerDisplaySection.classList.add('round-rest');
+                    progressBar.style.backgroundColor = '#d0021b';
+                    nextUpDisplay.textContent = `Next: ${nextExerciseName}`;
+                    break;
+                case 'finished':
+                    currentStateDisplay.textContent = 'Workout Complete!';
+                    timerDisplaySection.classList.add('finished');
+                    progressBar.style.backgroundColor = '#4CAF50';
+                    nextUpDisplay.textContent = 'Well done!';
+                    break;
+            }
+        }
+
+        function tick() {
+            if (isPaused) return;
+            currentTime--;
+
+            if (state === 'exercise') {
+                const halfway = Math.ceil(totalTimeForCurrentPhase / 2);
+                if (currentTime === halfway) {
+                    speak("Halfway");
+                } else if (currentTime <= 5 && currentTime > 0) {
+                    speak(String(currentTime));
+                } else if (currentTime === 0) {
+                    const isLastRound = currentRound === roundsPerExercise;
+                    const isLastExercise = currentExercise === totalExercises;
+                     if (!isLastRound && restTime > 0) {
+                        speak("Rest");
+                    } else if (isLastRound && !isLastExercise && exerciseRestTime > 0) {
+                        speak("Exercise Complete. Rest.");
+                    }
+                }
+            } else if (['rest', 'roundRest', 'prepare'].includes(state)) {
+                 if (currentTime <= 3 && currentTime > 0) {
+                    speak(String(currentTime));
+                } else if (currentTime === 0) {
+                    const isLastExercise = currentExercise === totalExercises;
+                    if (state === 'roundRest' && !isLastExercise) {
+                         const nextExerciseName = exerciseNames[currentExercise] || `Exercise ${currentExercise + 1}`;
+                         speak(`Next exercise: ${nextExerciseName}`);
+                    } else {
+                        speak("Begin");
+                    }
+                }
+            }
+
+            if (currentTime < 0) {
+                moveToNextState();
+            }
+            updateDisplay();
+        }
+
+        function moveToNextState() {
+            if (state === 'prepare') {
+                startRound();
+            } else if (state === 'exercise') {
+                const isLastRound = currentRound === roundsPerExercise;
+                const isLastExercise = currentExercise === totalExercises;
+
+                if (isLastRound && isLastExercise) {
+                    finishWorkout();
+                } else if (isLastRound) {
+                     if (exerciseRestTime > 0) {
+                        startExerciseRest();
+                    } else {
+                        currentExercise++;
+                        currentRound = 1;
+                        startRound();
+                    }
+                } else {
+                    if (restTime > 0) {
+                        startRest();
+                    } else {
+                        currentRound++;
+                        startRound();
+                    }
+                }
+            } else if (state === 'rest') {
+                currentRound++;
+                startRound();
+            } else if (state === 'roundRest') {
+                currentExercise++;
+                currentRound = 1;
+                startRound();
+            }
+        }
+        
+        function startPrepare() {
+            state = 'prepare';
+            currentTime = 5;
+            totalTimeForCurrentPhase = 5;
+            speak("Get Ready. Starting in 5");
+            updateDisplay();
+            intervalId = setInterval(tick, 1000);
+        }
+
+        function startRound() {
+            state = 'exercise';
+            currentTime = roundTime;
+            totalTimeForCurrentPhase = roundTime;
+            updateDisplay();
+        }
+
+        function startRest() {
+            state = 'rest';
+            currentTime = restTime;
+            totalTimeForCurrentPhase = restTime;
+            updateDisplay();
+        }
+
+        function startExerciseRest() {
+            state = 'roundRest';
+            currentTime = exerciseRestTime;
+            totalTimeForCurrentPhase = exerciseRestTime;
+            updateDisplay();
+        }
+
+        function finishWorkout() {
+            state = 'finished';
+            currentTime = 0;
+            totalTimeForCurrentPhase = 0;
+            clearInterval(intervalId);
+            intervalId = null;
+            startPauseButton.textContent = 'Start';
+            startPauseButton.classList.remove('pause');
+            configSection.style.display = 'block';
+            speak("Workout Complete. Well done!");
+            updateDisplay();
+        }
+
+        function startTimer() {
+            errorMessage.textContent = '';
+            
+            roundsPerExercise = parseInt(roundsPerExerciseInput.value);
+            roundTime = parseInt(roundTimeInput.value);
+            restTime = parseInt(restTimeInput.value);
+            exerciseRestTime = parseInt(exerciseRestTimeInput.value);
+
+            if (modeIntegerRadio.checked) {
+                totalExercises = parseInt(exercisesInput.value);
+                exerciseNames = Array.from({length: totalExercises}, (_, i) => `Exercise ${i + 1}`);
+            } else {
+                exerciseNames = exerciseListInput.value.split('\n').map(e => e.trim()).filter(e => e);
+                totalExercises = exerciseNames.length;
+                if(totalExercises === 0) {
+                     errorMessage.textContent = 'Please enter at least one exercise in the list.';
+                     speak('Invalid configuration.');
+                     return;
+                }
+            }
+
+            if (isNaN(totalExercises) || totalExercises < 1 ||
+                isNaN(roundsPerExercise) || roundsPerExercise < 1 ||
+                isNaN(roundTime) || roundTime < 1 ||
+                isNaN(restTime) || restTime < 0 ||
+                isNaN(exerciseRestTime) || exerciseRestTime < 0) {
+                errorMessage.textContent = 'Please enter valid numbers.';
+                speak('Invalid configuration.');
+                return;
+            }
+
+            if (synth && synth.getVoices().length === 0) {
+               speak('');
+               setTimeout(() => {
+                   if(synth.getVoices().length === 0) console.warn("No voices for speech synthesis.");
+               }, 200);
+            }
+
+            currentExercise = 1;
+            currentRound = 1;
+            isPaused = false;
+
+            configSection.style.display = 'none';
+            timerDisplaySection.style.display = 'block';
+            startPauseButton.textContent = 'Pause';
+            startPauseButton.classList.add('pause');
+
+            startPrepare();
+        }
+
+        function pauseTimer() {
+            isPaused = true;
+            clearInterval(intervalId);
+            startPauseButton.textContent = 'Resume';
+            startPauseButton.classList.remove('pause');
+            speak("Paused");
+        }
+
+        function resumeTimer() {
+            if (state === 'idle' || state === 'finished') return;
+            isPaused = false;
+            intervalId = setInterval(tick, 1000);
+            startPauseButton.textContent = 'Pause';
+            startPauseButton.classList.add('pause');
+            speak("Resuming");
+        }
+
+        function toggleStartPause() {
+            if (state === 'idle' || state === 'finished') {
+                startTimer();
+            } else if (isPaused) {
+                resumeTimer();
+            } else {
+                pauseTimer();
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(intervalId);
+            intervalId = null;
+            isPaused = false;
+            state = 'idle';
+            currentExercise = 1;
+            currentRound = 1;
+            currentTime = 0;
+            totalTimeForCurrentPhase = 0;
+            synth.cancel();
+
+            configSection.style.display = 'block';
+            timerDisplaySection.style.display = 'none';
+            startPauseButton.textContent = 'Start';
+            startPauseButton.classList.remove('pause');
+            errorMessage.textContent = '';
+            
+            updateDisplay();
+        }
+
+        function setupModeSelection() {
+            modeIntegerRadio.addEventListener('change', () => {
+                integerModeGroup.style.display = 'block';
+                listModeGroup.style.display = 'none';
+            });
+            modeListRadio.addEventListener('change', () => {
+                integerModeGroup.style.display = 'none';
+                listModeGroup.style.display = 'block';
+            });
+        }
+
+        startPauseButton.addEventListener('click', toggleStartPause);
+        resetButton.addEventListener('click', resetTimer);
+
+        setupModeSelection();
+        resetTimer();
+    </script>
 </body>
 </html>
