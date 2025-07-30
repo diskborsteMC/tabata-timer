@@ -413,7 +413,7 @@ Jumping Jacks</textarea>
                         speak("Rest");
                     } else if (isLastRound && !isLastExercise && exerciseRestTime > 0) {
                         const nextExerciseName = exerciseNames[currentExercise] || `Exercise ${currentExercise + 1}`;
-                        speak(`Exercise Complete. Next exercise: ${nextExerciseName}.`);
+                        speak(`Complete. Next: ${nextExerciseName}.`);
                     }
                 }
             } else if (state === 'roundRest') { 
