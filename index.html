@@ -417,9 +417,11 @@ Jumping Jacks</textarea>
                     }
                 }
             } else if (state === 'roundRest') { 
-                if (currentTime > 0 && currentTime <= 3 && totalTimeForCurrentPhase < 5) {
+                console.log(String(currentTime));
+                if (currentTime > 0 && currentTime <= 3) {
                     speak(String(currentTime));
-                } else if (currentTime === 0 && totalTimeForCurrentPhase < 5) {
+                }
+                if (currentTime === 0 && totalTimeForCurrentPhase < 5) {
                     speak("Begin");
                 }
             } else if (state === 'rest' || state === 'prepare') {
